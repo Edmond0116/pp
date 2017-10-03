@@ -30,7 +30,18 @@ int main(int argc, char **argv) {
     // oesort
     enum tag { send_tag, recv_tag };
     int done, sorted;
-    do {
+    if (bucket == N) do {
+        sorted = 1;
+        for (int i = 2 - (start & 1); i < bucket; i += 2) {
+            if (res[i - 1] > res[i])
+                swap(&res[i - 1], &res[i]), sorted = 0;
+        }
+        for (int i = 1 + (start & 1); i < bucket; i += 2) {
+            if (res[i - 1] > res[i])
+                swap(&res[i - 1], &res[i]), sorted = 0;
+        }
+    } while (!sorted);
+    else if (bucket != 0) do {
         sorted = 1;
         // odd
         for (int i = 2 - (start & 1); i < bucket; i += 2) {
