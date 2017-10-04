@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
     MPI_File rfile, wfile;
     MPI_Offset offset = start * sizeof(float);
     MPI_File_open(MPI_COMM_WORLD, infile, MPI_MODE_RDONLY, MPI_INFO_NULL, &rfile);
-    MPI_File_read_at(rfile, offset, res, bucket, MPI_FLOAT, MPI_STATUS_IGNORE);
+    MPI_File_read_at_all(rfile, offset, res, bucket, MPI_FLOAT, MPI_STATUS_IGNORE);
     MPI_File_close(&rfile);
     // oesort
     enum tag { send_tag, recv_tag };
@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
     } while (!done);
     // File Output
     MPI_File_open(MPI_COMM_WORLD, outfile, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &wfile);
-    MPI_File_write_at(wfile, offset, res, bucket, MPI_FLOAT, MPI_STATUS_IGNORE);
+    MPI_File_write_at_all(wfile, offset, res, bucket, MPI_FLOAT, MPI_STATUS_IGNORE);
     MPI_File_close(&wfile);
     free(res);
     MPI_Finalize();
