@@ -4,6 +4,7 @@
 #include <mpi.h>
 #include <algorithm>
 using std::sort;
+#define READ_MAX 536869888
 #define IS_ODD(x) ((x) & 1)
 #define IS_EVEN(x) (!(IS_ODD(x)))
 #define DEBUG(x, ...) fprintf(stderr, x, __VA_ARGS__);
@@ -50,9 +51,13 @@ int main(int argc, char **argv) {
         *ret = (float *) malloc(chunk * sizeof(float));
     // File Input
     MPI_File rfile, wfile;
-    MPI_Offset offset = start * sizeof(float);
+    MPI_Offset offset = start * sizeof(float),
+        ext_offset = offset + READ_MAX * sizeof(float);
     MPI_File_open(MPI_COMM_WORLD, infile, MPI_MODE_RDONLY, MPI_INFO_NULL, &rfile);
     MPI_File_read_at_all(rfile, offset, A, bucket, MPI_FLOAT, MPI_STATUS_IGNORE);
+    if (bucket >= READ_MAX) {
+        MPI_File_read_at_all(rfile, ext_offset, A + READ_MAX, bucket - READ_MAX, MPI_FLOAT, MPI_STATUS_IGNORE);
+    }
     MPI_File_close(&rfile);
     // oesort
     enum tag { send_tag, recv_tag };
@@ -85,6 +90,9 @@ int main(int argc, char **argv) {
     // File Output
     MPI_File_open(MPI_COMM_WORLD, outfile, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &wfile);
     MPI_File_write_at_all(wfile, offset, A, bucket, MPI_FLOAT, MPI_STATUS_IGNORE);
+    if (bucket >= READ_MAX) {
+        MPI_File_write_at_all(wfile, ext_offset, A + READ_MAX, bucket - READ_MAX, MPI_FLOAT, MPI_STATUS_IGNORE);
+    }
     MPI_File_close(&wfile);
     free(A);
     free(B);
