@@ -35,18 +35,22 @@ int main(int argc, char **argv) {
     // oesort
     enum tag { send_tag, recv_tag };
     int done, sorted;
-    if (bucket == N) do {
+    do {
         sorted = 1;
+        // odd
         for (int i = 2 - (start & 1); i < bucket; i += 2) {
             if (res[i - 1] > res[i])
                 swap(&res[i - 1], &res[i]), sorted = 0;
         }
+        // even
         for (int i = 1 + (start & 1); i < bucket; i += 2) {
             if (res[i - 1] > res[i])
                 swap(&res[i - 1], &res[i]), sorted = 0;
         }
     } while (!sorted);
-    else if (bucket != 0) do {
+    if (bucket != 0 && bucket != N) {
+    MPI_Barrier(MPI_COMM_WORLD);
+    do {
         sorted = 1;
         // odd
         for (int i = 2 - (start & 1); i < bucket; i += 2) {
@@ -84,6 +88,7 @@ int main(int argc, char **argv) {
         }
         MPI_Allreduce(&sorted, &done, 1, MPI_INT, MPI_LAND, MPI_COMM_WORLD);
     } while (!done);
+    }
     // File Output
     MPI_File_open(MPI_COMM_WORLD, outfile, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &wfile);
     MPI_File_write_at_all(wfile, offset, res, bucket, MPI_FLOAT, MPI_STATUS_IGNORE);
